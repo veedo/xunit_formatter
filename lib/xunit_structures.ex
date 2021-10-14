@@ -1,6 +1,5 @@
 defmodule XUnitFormatter.Document do
   import XmlBuilder
-  @child_elements [:assemblies]
   defstruct assemblies: []
 
   def to_xml(%__MODULE__{assemblies: assemblies}) do
@@ -52,8 +51,10 @@ defmodule XUnitFormatter.Assembly do
             errors: [],
             collections: []
 
+  defp map_key_to_xml_key({k, v}) when is_atom(k), do: map_key_to_xml_key({to_string(k), v})
+  defp map_key_to_xml_key({k, v}) when is_binary(k), do: {String.replace(k, "_", "-"), v}
+
   def to_xml(assembly = %__MODULE__{}) do
-    attrs = assembly |> Map.from_struct() |> Map.drop(@child_elements)
     errors = if is_list(assembly.errors) and length(assembly.errors) > 1 do
       [element(:errors, Enum.map(assembly.errors, &XUnitFormatter.Error.to_xml/1))]
     else
@@ -64,6 +65,7 @@ defmodule XUnitFormatter.Assembly do
     else
       []
     end
+    attrs = assembly |> Map.from_struct() |> Map.drop(@child_elements) |> Enum.reject(&is_nil/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
     {:assembly, attrs, errors ++ collections}
   end
 end
@@ -73,30 +75,39 @@ defmodule XUnitFormatter.Collection do
   @enforce_keys [:name]
   defstruct name: nil,
             time: nil,
-            total: nil,
-            passed: nil,
-            failed: nil,
-            skipped: nil,
+            total: 0,
+            passed: 0,
+            failed: 0,
+            skipped: 0,
             tests: []
 
+  defp map_key_to_xml_key({k, v}) when is_atom(k), do: map_key_to_xml_key({to_string(k), v})
+  defp map_key_to_xml_key({k, v}) when is_binary(k), do: {String.replace(k, "_", "-"), v}
+
   def to_xml(collection = %__MODULE__{}) do
-    attrs = assembly |> Map.from_struct() |> Map.drop(@child_elements)
-    tests = if is_list(assembly.collections) do
-      Enum.map(assembly.collections, &XUnitFormatter.Test.to_xml/1)
+    tests = if is_list(collection.tests) do
+      Enum.map(collection.tests, &XUnitFormatter.Test.to_xml/1)
     else
       []
     end
+
+    attrs = collection |> Map.from_struct() |> Map.drop(@child_elements) |> Enum.reject(&is_nil/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
     {:collection, attrs, tests}
   end
 end
 
 defmodule XUnitFormatter.Failure do
+  import XmlBuilder
   @child_elements [:message, :stack_trace]
   defstruct exception_type: nil,
             message: nil,
             stack_trace: nil
+
+  defp map_key_to_xml_key({k, v}) when is_atom(k), do: map_key_to_xml_key({to_string(k), v})
+  defp map_key_to_xml_key({k, v}) when is_binary(k), do: {String.replace(k, "_", "-"), v}
+
   def to_xml(failure = %__MODULE__{}) do
-    attrs = failure |> Map.from_struct() |> Map.drop(@child_elements)
+    attrs = failure |> Map.from_struct() |> Map.drop(@child_elements) |> Enum.reject(&is_nil/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
     element(:failure, attrs, [])
   end
 end
@@ -112,8 +123,12 @@ defmodule XUnitFormatter.Error do
             failed: nil,
             skipped: nil,
             failure: %XUnitFormatter.Failure{}
+
+  defp map_key_to_xml_key({k, v}) when is_atom(k), do: map_key_to_xml_key({to_string(k), v})
+  defp map_key_to_xml_key({k, v}) when is_binary(k), do: {String.replace(k, "_", "-"), v}
+
   def to_xml(error = %__MODULE__{}) do
-    attrs = error |> Map.from_struct() |> Map.drop(@child_elements)
+    attrs = error |> Map.from_struct() |> Map.drop(@child_elements) |> Enum.reject(&is_nil/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
     element(:error, attrs, [])
   end
 end
@@ -130,8 +145,11 @@ defmodule XUnitFormatter.Test do
             failure: %XUnitFormatter.Failure{},
             reason: ""
 
+  defp map_key_to_xml_key({k, v}) when is_atom(k), do: map_key_to_xml_key({to_string(k), v})
+  defp map_key_to_xml_key({k, v}) when is_binary(k), do: {String.replace(k, "_", "-"), v}
+
   def to_xml(test = %__MODULE__{}) do
-    attrs = test |> Map.from_struct() |> Map.drop(@child_elements)
+    attrs = test |> Map.from_struct() |> Map.drop(@child_elements) |> Enum.reject(&is_nil/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
     {:test, attrs, []}
   end
 end
