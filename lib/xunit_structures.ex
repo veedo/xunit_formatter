@@ -6,11 +6,27 @@ end
 defmodule XUnitFormatter.RunDate do
   @enforce_keys [:year, :month, :day]
   defstruct [:year, :month, :day]
+
+  def to_xml(%__MODULE__{year: yyyy, month: mm, day: dd}) do
+    now = DateTime.utc_now()
+    yyyy = (yyyy || now.year) |> Integer.to_string() |> String.pad_leading(4, "0")
+    mm = (mm || now.month) |> Integer.to_string() |> String.pad_leading(2, "0")
+    dd = (dd || now.day) |> Integer.to_string() |> String.pad_leading(2, "0")
+    "#{yyyy}-#{mm}-#{dd}"
+  end
 end
 
 defmodule XUnitFormatter.RunTime do
   @enforce_keys [:hour, :minute, :second]
   defstruct [:hour, :minute, :second]
+
+  def to_xml(%__MODULE__{hour: hh, minute: mm, second: ss}) do
+    now = DateTime.utc_now()
+    hh = (hh || now.hour) |> Integer.to_string() |> String.pad_leading(2, "0")
+    mm = (mm || now.minute) |> Integer.to_string() |> String.pad_leading(2, "0")
+    ss = (ss || now.second) |> Integer.to_string() |> String.pad_leading(2, "0")
+    "#{hh}:#{mm}:#{ss}"
+  end
 end
 
 defmodule XUnitFormatter.Assembly do
