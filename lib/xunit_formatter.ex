@@ -14,7 +14,7 @@ defmodule XUnitFormatter do
   end
 
   @impl true
-  def handle_cast({:suite_started, opts}}, state) do
+  def handle_cast({:suite_started, opts}, state) do
     # the suite has started with the specified options to the runner.
     {:noreply, state}
   end
@@ -37,7 +37,7 @@ defmodule XUnitFormatter do
   end
 
   @impl true
-  def handle_cast({:test_started, test = %ExUnit.Test{state: test_state = %ExUnit.state{}}}, state) do
+  def handle_cast({:test_started, test = %ExUnit.Test{}}, state) do
     # a test has started. See ExUnit.Test for details.
     {:noreply, state}
   end
