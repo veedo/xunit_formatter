@@ -4,13 +4,31 @@ defmodule XUnitFormatter do
   """
 
   use GenServer
+  defstruct test_cases: %{}, config: %{}, date: nil
 
   @impl true
   def init(config) do
+    IO.inspect(config, label: "XUnitFormatter init config")
+    # raise ArgumentError, config
     # The full ExUnit configuration is passed as the argument to GenServer.init/1 callback when the formatters are started.
     # If you need to do runtime configuration of a formatter, you can add any configuration needed by using ExUnit.configure/1 or ExUnit.start/1,
     # and this will then be included in the options passed to the GenServer.init/1 callback.
-    {:ok, config}
+    xunit_report_dir = Application.get_env(:xunit_formatter, :report_dir, Mix.Project.app_path())
+    if Application.get_env(:xunit_formatter, :autocreate_report_dir?, false) do
+      :ok = File.mkdir_p(xunit_report_dir)
+    end
+    |> IO.inspect(label: "xunit_formatter xunit_report_dir")
+
+    xunit_root_dir = Application.get_env(:xunit_formatter, :root_dir, Mix.Project.app_path())
+    |> IO.inspect(label: "xunit_formatter xunit_root_dir")
+    config = config |> Keyword.put(:xunit_report_dir, xunit_report_dir) |> Keyword.put(:xunit_root_dir, xunit_root_dir) |> IO.inspect(label: "xunit_formatter init config")
+    {:ok, %__MODULE__{config: config, date: DateTime.utc_now()}}
+  end
+
+  @impl true
+  def handle_cast(msg, state) do
+    IO.inspect(msg, label: "xunit_formatter handle_cast")
+    {:noreply, state}
   end
 
   @impl true
