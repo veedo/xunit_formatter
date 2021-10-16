@@ -81,7 +81,6 @@ end
 
 defmodule XUnitFormatter.Assembly do
   import XmlBuilder
-  @enforce_keys [:name, :total, :collections]
   defstruct name: nil,
             config_file: nil,
             test_framework: :ex_unit,
@@ -213,9 +212,21 @@ defmodule XUnitFormatter.Result do
   def struct!({:excluded, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
   def struct!({:skipped, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
   def attributes(%__MODULE__{result: result}), do: %{result: result}
-  def content(%__MODULE__{reason: reason, failure: nil}), do: [reason: {:cdata, reason}]
-  def content(%__MODULE__{reason: nil, failure: failure}), do: [XUnitFormatter.XUnitXML.xunit_xml(failure)]
+  def content(%__MODULE__{reason: reason, failure: nil}) when not is_nil(reason), do: [reason: {:cdata, reason}]
+  def content(%__MODULE__{reason: nil, failure: failure}) when not is_nil(failure), do: [XUnitFormatter.XUnitXML.xunit_xml(failure)]
   def content(_), do: []
+end
+
+defmodule XUnitFormatter.Trait do
+  defstruct [:name, :value]
+  defimpl XUnitFormatter.XUnitXML do
+    defdelegate attributes(data), to: XUnitFormatter.XUnitXML.Any
+    defdelegate content(data), to: XUnitFormatter.XUnitXML.Any
+    defdelegate child_elements(data), to: XUnitFormatter.XUnitXML.Any
+    defdelegate xunit_xml(data), to: XUnitFormatter.XUnitXML.Any
+
+    def element_name(_), do: :trait
+  end
 end
 
 defmodule XUnitFormatter.Test do
@@ -227,6 +238,7 @@ defmodule XUnitFormatter.Test do
             traits: [],
             result: %XUnitFormatter.Result{}
 
+  defp strip_test_header(title) when not is_binary(title), do: strip_test_header(to_string(title))
   defp strip_test_header(<<"test ", rest::binary>>), do: rest
   defp strip_test_header(rest), do: rest
 
@@ -237,14 +249,14 @@ defmodule XUnitFormatter.Test do
       |> Enum.reject(&is_nil(elem(&1, 1)))
       |> Enum.map(fn {k,v} -> %XUnitFormatter.Trait{name: k, value: "#{inspect v}"} end)
 
-    %{
+    Kernel.struct!(__MODULE__, %{
       name: strip_test_header(test.name),
       type: test.tags.test_type,
       method: "#{test.tags.file}:#{test.tags.line}",
       time: test.time / 1_000_000,
       result: XUnitFormatter.Result.struct!(test.state),
       traits: traits
-    }
+    })
   end
 
   defimpl XUnitFormatter.XUnitXML do
@@ -262,22 +274,10 @@ defmodule XUnitFormatter.Test do
       else
         []
       end
-      result_content = XUnitFormatter.Result.content(data)
+      result_content = XUnitFormatter.Result.content(data.result)
 
       result_content ++ trait_content
     end
     def child_elements(_), do: [:traits, :failure, :reason]
-  end
-end
-
-defmodule XUnitFormatter.Trait do
-  defstruct [:name, :value]
-  defimpl XUnitFormatter.XUnitXML do
-    defdelegate attributes(data), to: XUnitFormatter.XUnitXML.Any
-    defdelegate content(data), to: XUnitFormatter.XUnitXML.Any
-    defdelegate child_elements(data), to: XUnitFormatter.XUnitXML.Any
-    defdelegate xunit_xml(data), to: XUnitFormatter.XUnitXML.Any
-
-    def element_name(_), do: :trait
   end
 end
