@@ -24,7 +24,7 @@ defmodule XUnitFormatter.Modifiers do
   end
   def attribute_to_xml({k, v}) when is_struct(v), do: {k, XUnitFormatter.XUnitXML.xunit_xml(v)}
   def attribute_to_xml(attr), do: attr
-  def get_attributes(data), do: data |> Map.from_struct() |> Map.drop(XUnitFormatter.XUnitXML.child_elements(data)) |> Enum.reject(&is_nil/1) |> Enum.map(&attribute_to_xml/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
+  def get_attributes(data), do: data |> Map.from_struct() |> Map.drop(XUnitFormatter.XUnitXML.child_elements(data)) |> Enum.reject(&is_nil(elem(&1, 1))) |> Enum.map(&attribute_to_xml/1) |> Enum.map(&map_key_to_xml_key/1) |> Enum.into(%{})
 end
 
 defmodule XUnitFormatter.Document do
@@ -37,7 +37,7 @@ defmodule XUnitFormatter.Document do
 
     def element_name(_data), do: :assemblies
     def content(data), do: Enum.map(data.assemblies, &XUnitFormatter.XUnitXML.xunit_xml/1)
-    def xunit_xml(data), do: document(element_name(data), content(data)) |> IO.inspect() |> XmlBuilder.generate()
+    def xunit_xml(data), do: document(element_name(data), content(data)) |> XmlBuilder.generate()
   end
 end
 
@@ -96,8 +96,20 @@ defmodule XUnitFormatter.Assembly do
             collections: []
 
   defimpl XUnitFormatter.XUnitXML do
-    defdelegate attributes(data), to: XUnitFormatter.XUnitXML.Any
     defdelegate xunit_xml(data), to: XUnitFormatter.XUnitXML.Any
+
+    def attributes(data) do
+      data.collections
+      |> Enum.reduce(%{data | total: 0, passed: 0, failed: 0, skipped: 0}, fn collection, acc_assembly ->
+        total = length(collection.tests)
+        passed = collection.tests |> Enum.filter(&(&1.result.result == "Pass")) |> length()
+        failed = collection.tests |> Enum.filter(&(&1.result.result == "Fail")) |> length()
+        skipped = collection.tests |> Enum.filter(&(&1.result.result == "Skip")) |> length()
+
+        %{acc_assembly | total: acc_assembly.total + total, passed: acc_assembly.passed + passed, failed: acc_assembly.failed + failed, skipped: acc_assembly.skipped + skipped}
+      end)
+      |> XUnitFormatter.XUnitXML.Any.attributes()
+    end
 
     def element_name(_), do: :assembly
     def child_elements(_), do: [:errors, :collections]
@@ -155,7 +167,6 @@ defmodule XUnitFormatter.Failure do
             stack_trace: nil
 
   defp to_map({exception_type, message, stack_trace}), do: %{exception_type: exception_type, message: message, stack_trace: stack_trace}
-  # TODO: Modify stack format so that paths are relative to root_dir
   defp convert_exception([msg | _]), do: convert_exception(msg)
   defp convert_exception({type, %ExUnit.AssertionError{message: reason}, stack_trace}), do: {type, reason, Exception.format_stacktrace(stack_trace)} |> to_map()
   defp convert_exception({:error, reason, stack_trace}), do: {:error, Exception.message(reason), Exception.format_stacktrace(stack_trace)} |> to_map()
