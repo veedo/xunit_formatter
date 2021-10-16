@@ -36,11 +36,6 @@ defmodule XUnitFormatter do
   end
 
   @impl true
-  def handle_cast({:module_started, _test_module = %ExUnit.TestModule{}}, state) do
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_cast({:module_finished, test_module = %ExUnit.TestModule{}}, state) do
     tests =
       test_module.tests
@@ -65,21 +60,19 @@ defmodule XUnitFormatter do
   end
 
   @impl true
-  def handle_cast({:test_started, _test = %ExUnit.Test{}}, state) do
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_cast({:test_finished, _test = %ExUnit.Test{}}, state) do
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_cast({:sigquit, running_tests_and_modules}, state) do
     # the VM is going to shutdown. It receives the test cases (or test module in case of setup_all) still running.
     IO.inspect({:sigquit, running_tests_and_modules}, label: "xunit_formatter handle_cast")
     {:noreply, state}
   end
+
+  # Un-used casts
+  @impl true
+  def handle_cast({:module_started, _module = %ExUnit.TestModule{}}, state), do: {:noreply, state}
+  @impl true
+  def handle_cast({:test_started, _test = %ExUnit.Test{}}, state), do: {:noreply, state}
+  @impl true
+  def handle_cast({:test_finished, _test = %ExUnit.Test{}}, state), do: {:noreply, state}
 
   # Deprecated casts
   @impl true
