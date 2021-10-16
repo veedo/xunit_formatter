@@ -14,7 +14,7 @@ defmodule XUnitFormatter do
     end
 
     xunit_root_dir = Application.get_env(:xunit_formatter, :root_dir, Mix.Project.app_path())
-    config = config |> Keyword.put(:xunit_report_dir, xunit_report_dir) |> Keyword.put(:xunit_root_dir, xunit_root_dir)
+    config = config |> Keyword.put(:xunit_report_dir, xunit_report_dir) |> Keyword.put(:xunit_root_dir, xunit_root_dir) |> Enum.into(%{})
     # |> IO.inspect(label: "xunit_formatter init config")
     {:ok, %__MODULE__{config: config, date: DateTime.utc_now()}}
   end
@@ -35,11 +35,35 @@ defmodule XUnitFormatter do
     {:noreply, state}
   end
 
+  def expand_exception_paths(test = %ExUnit.Test{state: {:failed, _}}, cwd, root_dir) do
+    %ExUnit.Test{test | state: Enum.map(test.state, &expand_exception_paths(&1, cwd, root_dir)}
+  end
+
+  def expand_exception_paths(test = %ExUnit.Test{}, _cwd, _root_dir), do: test
+
+  def expand_exception_paths({kind, reason, stacktrace}, cwd, root_dir) do
+    {kind, reason, Enum.map(stacktrace, &expand_exception_paths(&1, cwd, root_dir))}
+  end
+
+  def expand_exception_paths({module, fun, args, path}, cwd, root_dir) do
+    {module, fun, args, expand_exception_paths(path, cwd, root_dir)}
+  end
+
+  def expand_exception_paths([file: path, line: line], cwd, root_dir) do
+    if File.exists?(abspath = Path.expand(path, cwd)) do
+      [file: Path.relative_to(abspath, root_dir), line: line]
+    else
+      [file: path, line: line]
+    end
+  end
+
+
   @impl true
   def handle_cast({:module_finished, test_module = %ExUnit.TestModule{}}, state) do
     tests =
       test_module.tests
       |> Enum.map(&XUnitFormatter.Test.struct!/1)
+      |> Enum.map(&expand_exception_paths, File.cwd!, state.config.xunit_root_dir)
 
     module_time = test_module.tests |> Enum.reduce(0, fn test, acc -> acc + test.time end)
     module_time = module_time / 1_000_000
