@@ -156,11 +156,12 @@ defmodule XUnitFormatter.Failure do
             stack_trace: nil
 
   defp to_map({exception_type, message, stack_trace}), do: %{exception_type: exception_type, message: message, stack_trace: stack_trace}
+  # TODO: Modify stack format so that paths are relative to root_dir
   defp convert_exception([msg | _]), do: convert_exception(msg)
-  defp convert_exception({type, %ExUnit.AssertionError{message: reason}, stack_trace}), do: {type, reason, stack_trace} |> to_map()
-  defp convert_exception({:error, reason, stack_trace}), do: {:error, Exception.message(reason), stack_trace} |> to_map()
-  defp convert_exception({type, reason, stack_trace}) when is_atom(type), do: {type, "#{inspect(reason)}", stack_trace} |> to_map()
-  defp convert_exception({type, reason, stack_trace}), do: {"#{inspect(type)}", "#{inspect(reason)}", stack_trace} |> to_map()
+  defp convert_exception({type, %ExUnit.AssertionError{message: reason}, stack_trace}), do: {type, reason, Exception.format_stacktrace(stack_trace)} |> to_map()
+  defp convert_exception({:error, reason, stack_trace}), do: {:error, Exception.message(reason), Exception.format_stacktrace(stack_trace)} |> to_map()
+  defp convert_exception({type, reason, stack_trace}) when is_atom(type), do: {type, "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)} |> to_map()
+  defp convert_exception({type, reason, stack_trace}), do: {"#{inspect(type)}", "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)} |> to_map()
 
   @spec struct!(ExUnit.failed()) :: %__MODULE__{}
   def struct!(failure) do
