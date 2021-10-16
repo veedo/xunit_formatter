@@ -1,51 +1,3 @@
-==> xunit_formatter
-Compiling 1 file (.ex)
-==> balance
-"/workspaces/beamos/config/iopnts.ex"
-Retreiving IOPNT definitions
-POINTS: Starting...
-POINTS: Starting node...
-[info] Protocol 'inet_tcp': register/listen error: econnrefused
-
-POINTS: Starting libcluster...
-POINTS: Starting syn...
-[info] Syn(:nonode@nohost): Initiating full cluster groups sync for nodes: []
-
-[info] Syn(:nonode@nohost): Initiating full cluster registry sync for nodes: []
-
-POINTS: Initializing Ledger
-POINTS: Initializing Supervisor
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden.Pack1
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden.Pack1Pcm1
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden.Array1
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden.Array2
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden.Array3
-[info] Starting Horde.DynamicSupervisorImpl with name Points.Warden
-POINTS: DONE
-BOOT: Starting...
-BOOT: Initializing points
-BOOT: DONE
-XUnitFormatter init config: [
-  include: [],
-  exclude: [],
-  max_cases: 16,
-  seed: 596690,
-  autorun: false,
-  assert_receive_timeout: 100,
-  colors: [],
-  refute_receive_timeout: 100,
-  failures_manifest_file: "/workspaces/beamos/_build/test/lib/balance/.mix/.mix_test_failures",
-  capture_log: false,
-  slowest: 0,
-  stacktrace_depth: 20,
-  trace: false,
-  max_failures: :infinity,
-  formatters: [XUnitFormatter],
-  timeout: 60000,
-  after_suite: []
-]
-xunit_formatter xunit_report_dir: nil
-xunit_formatter xunit_root_dir: "/workspaces/beamos/_build/test/lib/balance"
 xunit_formatter init config: [
   xunit_root_dir: "/workspaces/beamos/_build/test/lib/balance",
   xunit_report_dir: "/workspaces/beamos/_build/test/lib/balance",
@@ -87,24 +39,8 @@ xunit_formatter handle_cast: {:suite_started,
    timeout: 60000,
    after_suite: []
  ]}
-xunit_formatter handle_cast: {:case_started,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceDocTest,
-   state: nil,
-   tests: []
- }}
 xunit_formatter handle_cast: {:module_started,
  %ExUnit.TestModule{
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceDocTest,
-   state: nil,
-   tests: []
- }}
-xunit_formatter handle_cast: {:case_finished,
- %{
-   __struct__: ExUnit.TestCase,
    file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
    name: BalanceDocTest,
    state: nil,
@@ -116,32 +52,6 @@ xunit_formatter handle_cast: {:module_finished,
    name: BalanceDocTest,
    state: nil,
    tests: []
- }}
-xunit_formatter handle_cast: {:case_started,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCellCapacityTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCellCapacityTest,
-       logs: "",
-       module: BalanceCellCapacityTest,
-       name: :"test Series element capacity and balancing alignment point is used to determine balancing SEs",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 55,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_started,
  %ExUnit.TestModule{
@@ -187,49 +97,6 @@ xunit_formatter handle_cast: {:test_started,
      test_type: :test
    },
    time: 0
- }}
-xunit_formatter handle_cast: {:case_started,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceModuleInfoTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceModuleInfoTest,
-       logs: "",
-       module: BalanceModuleInfoTest,
-       name: :"test Crashed module process is treated as unknown information",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 142,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     },
-     %ExUnit.Test{
-       case: BalanceModuleInfoTest,
-       logs: "",
-       module: BalanceModuleInfoTest,
-       name: :"test Balancing is disabled when information is unavailable for a series element",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 101,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_started,
  %ExUnit.TestModule{
@@ -292,66 +159,6 @@ xunit_formatter handle_cast: {:test_started,
      test_type: :test
    },
    time: 0
- }}
-xunit_formatter handle_cast: {:case_started,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCellChargeCriteriaTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing stops when the series element charge is within the 'stop charge' of the lowest SEs in the string",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 230,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     },
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing starts when the series element charge in the string is higher by the 'start charge' from the lowest SEs",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 199,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     },
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing is disabled for series elements when their SOC is below the allowable threshold",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 180,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_started,
  %ExUnit.TestModule{
@@ -431,49 +238,6 @@ xunit_formatter handle_cast: {:test_started,
      test_type: :test
    },
    time: 0
- }}
-xunit_formatter handle_cast: {:case_started,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCurrentTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCurrentTest,
-       logs: "",
-       module: BalanceCurrentTest,
-       name: :"test Balancing is disabled when string current amplitude is too high",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 300,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     },
-     %ExUnit.Test{
-       case: BalanceCurrentTest,
-       logs: "",
-       module: BalanceCurrentTest,
-       name: :"test Balancing is disabled when information is unavailable for the string",
-       state: nil,
-       tags: %{
-         async: true,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 278,
-         registered: %{},
-         test_type: :test
-       },
-       time: 0
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_started,
  %ExUnit.TestModule{
@@ -558,36 +322,6 @@ xunit_formatter handle_cast: {:test_finished,
      test_type: :test
    },
    time: 922579
- }}
-xunit_formatter handle_cast: {:case_finished,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCellCapacityTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCellCapacityTest,
-       logs: "",
-       module: BalanceCellCapacityTest,
-       name: :"test Series element capacity and balancing alignment point is used to determine balancing SEs",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCellCapacityTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 55,
-         module: BalanceCellCapacityTest,
-         registered: %{},
-         string_location: {1, 1, :pack1, :a},
-         test: :"test Series element capacity and balancing alignment point is used to determine balancing SEs",
-         test_type: :test
-       },
-       time: 922579
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_finished,
  %ExUnit.TestModule{
@@ -808,57 +542,6 @@ xunit_formatter handle_cast: {:test_finished,
    },
    time: 907549
  }}
-xunit_formatter handle_cast: {:case_finished,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCurrentTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCurrentTest,
-       logs: "",
-       module: BalanceCurrentTest,
-       name: :"test Balancing is disabled when string current amplitude is too high",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCurrentTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 300,
-         module: BalanceCurrentTest,
-         registered: %{},
-         string_location: {2, 2, :pack1, :d},
-         test: :"test Balancing is disabled when string current amplitude is too high",
-         test_type: :test
-       },
-       time: 1110409
-     },
-     %ExUnit.Test{
-       case: BalanceCurrentTest,
-       logs: "",
-       module: BalanceCurrentTest,
-       name: :"test Balancing is disabled when information is unavailable for the string",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCurrentTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 278,
-         module: BalanceCurrentTest,
-         registered: %{},
-         string_location: {2, 2, :pack1, :d},
-         test: :"test Balancing is disabled when information is unavailable for the string",
-         test_type: :test
-       },
-       time: 907549
-     }
-   ]
- }}
 xunit_formatter handle_cast: {:module_finished,
  %ExUnit.TestModule{
    file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
@@ -931,57 +614,6 @@ xunit_formatter handle_cast: {:test_finished,
    },
    time: 1466851
  }}
-xunit_formatter handle_cast: {:case_finished,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceModuleInfoTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceModuleInfoTest,
-       logs: "",
-       module: BalanceModuleInfoTest,
-       name: :"test Crashed module process is treated as unknown information",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceModuleInfoTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 142,
-         module: BalanceModuleInfoTest,
-         registered: %{},
-         string_location: {1, 2, :pack1, :b},
-         test: :"test Crashed module process is treated as unknown information",
-         test_type: :test
-       },
-       time: 1007319
-     },
-     %ExUnit.Test{
-       case: BalanceModuleInfoTest,
-       logs: "",
-       module: BalanceModuleInfoTest,
-       name: :"test Balancing is disabled when information is unavailable for a series element",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceModuleInfoTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 101,
-         module: BalanceModuleInfoTest,
-         registered: %{},
-         string_location: {1, 2, :pack1, :b},
-         test: :"test Balancing is disabled when information is unavailable for a series element",
-         test_type: :test
-       },
-       time: 1466851
-     }
-   ]
- }}
 xunit_formatter handle_cast: {:module_finished,
  %ExUnit.TestModule{
    file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
@@ -1053,78 +685,6 @@ xunit_formatter handle_cast: {:test_finished,
      test_type: :test
    },
    time: 909873
- }}
-xunit_formatter handle_cast: {:case_finished,
- %{
-   __struct__: ExUnit.TestCase,
-   file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-   name: BalanceCellChargeCriteriaTest,
-   state: nil,
-   tests: [
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing is disabled for series elements when their SOC is below the allowable threshold",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCellChargeCriteriaTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 180,
-         module: BalanceCellChargeCriteriaTest,
-         registered: %{},
-         string_location: {2, 1, :pack1, :c},
-         test: :"test Balancing is disabled for series elements when their SOC is below the allowable threshold",
-         test_type: :test
-       },
-       time: 855462
-     },
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing stops when the series element charge is within the 'stop charge' of the lowest SEs in the string",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCellChargeCriteriaTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 230,
-         module: BalanceCellChargeCriteriaTest,
-         registered: %{},
-         string_location: {2, 1, :pack1, :c},
-         test: :"test Balancing stops when the series element charge is within the 'stop charge' of the lowest SEs in the string",
-         test_type: :test
-       },
-       time: 1114527
-     },
-     %ExUnit.Test{
-       case: BalanceCellChargeCriteriaTest,
-       logs: "",
-       module: BalanceCellChargeCriteriaTest,
-       name: :"test Balancing starts when the series element charge in the string is higher by the 'start charge' from the lowest SEs",
-       state: nil,
-       tags: %{
-         async: true,
-         case: BalanceCellChargeCriteriaTest,
-         describe: nil,
-         describe_line: nil,
-         file: "/workspaces/beamos/apps/balance/test/balance_test.exs",
-         line: 199,
-         module: BalanceCellChargeCriteriaTest,
-         registered: %{},
-         string_location: {2, 1, :pack1, :c},
-         test: :"test Balancing starts when the series element charge in the string is higher by the 'start charge' from the lowest SEs",
-         test_type: :test
-       },
-       time: 909873
-     }
-   ]
  }}
 xunit_formatter handle_cast: {:module_finished,
  %ExUnit.TestModule{

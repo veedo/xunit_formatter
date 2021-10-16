@@ -226,6 +226,26 @@ defmodule XUnitFormatter.Test do
             traits: [],
             result: %XUnitFormatter.Result{}
 
+  defp strip_test_header(<<"test ", rest::binary>>), do: rest
+  defp strip_test_header(rest), do: rest
+
+  def struct!(test = %ExUnit.Test{}) do
+    traits =
+      test.tags
+      |> Map.drop([:test_type, :file, :line, :case, :module, :test])
+      |> Enum.reject(&is_nil(elem(&1, 1)))
+      |> Enum.map(fn {k,v} -> %XUnitFormatter.Trait{name: k, value: "#{inspect v}"} end)
+
+    %{
+      name: strip_test_header(test.name),
+      type: test.tags.test_type,
+      method: "#{test.tags.file}:#{test.tags.line}",
+      time: test.time / 1_000_000,
+      result: XUnitFormatter.Result.struct!(test.state),
+      traits: traits
+    }
+  end
+
   defimpl XUnitFormatter.XUnitXML do
     defdelegate xunit_xml(data), to: XUnitFormatter.XUnitXML.Any
     def attributes(data) do
