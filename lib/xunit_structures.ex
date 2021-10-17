@@ -262,8 +262,9 @@ defmodule XUnitFormatter.Test do
 
     Kernel.struct!(__MODULE__, %{
       name: strip_test_header(test.name),
+      method: strip_test_header(test.name),
+      # method: "#{test.tags.file}:#{test.tags.line}",
       type: test.tags.test_type,
-      method: "#{test.tags.file}:#{test.tags.line}",
       time: test.time / 1_000_000,
       result: XUnitFormatter.Result.struct!(test.state),
       traits: traits

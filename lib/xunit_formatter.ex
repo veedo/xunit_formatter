@@ -83,7 +83,7 @@ defmodule XUnitFormatter do
       tests: tests
     }
     assembly = if is_nil(state.assembly) do
-      name = test_module.file |> Path.rootname(".exs")
+      name = test_module.file |> Path.relative_to(state.config.xunit_root_dir)
       %XUnitFormatter.Assembly{name: name, environment: "seed=#{state.config.seed}"}
     else
       state.assembly
