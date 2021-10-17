@@ -4,6 +4,7 @@ defmodule XUnitFormatter do
   """
 
   use GenServer
+  alias XUnitFormatter.Struct, as: XStruct
   defstruct assembly: nil, collection: [], test_cases: [], skipped: %{}, config: %{}, date: nil
 
   def expand_exception_paths(test = %ExUnit.Test{state: {:failed, failure}}, cwd, root_dir) do
@@ -60,7 +61,7 @@ defmodule XUnitFormatter do
     prefix = if state.config.xunit_prepend_app_name, do: "#{Mix.Project.config()[:app]}-", else: ""
     filename = state.config.xunit_report_dir |> Path.join(prefix <> "xunit-report.xml")
 
-    xunit_data = %XUnitFormatter.Document{assemblies: [state.assembly]}
+    xunit_data = %XStruct.Document{assemblies: [state.assembly]}
     |> XUnitFormatter.XUnitXML.xunit_xml()
 
     File.write!(filename, xunit_data)
@@ -73,18 +74,18 @@ defmodule XUnitFormatter do
     tests =
       (test_module.tests ++ Map.get(state.skipped, test_module.name, []))
       |> Enum.map(&expand_exception_paths(&1, File.cwd!, state.config.xunit_root_dir))
-      |> Enum.map(&XUnitFormatter.Test.struct!/1)
+      |> Enum.map(&XStruct.Test.struct!/1)
 
     module_time = test_module.tests |> Enum.reduce(0, fn test, acc -> acc + test.time end)
     module_time = module_time / 1_000_000
-    collection = %XUnitFormatter.Collection{
+    collection = %XStruct.Collection{
       name: "#{inspect test_module.name}",
       time: module_time,
       tests: tests
     }
     assembly = if is_nil(state.assembly) do
       name = test_module.file |> Path.relative_to(state.config.xunit_root_dir)
-      %XUnitFormatter.Assembly{name: name, environment: "seed=#{state.config.seed}"}
+      %XStruct.Assembly{name: name, environment: "seed=#{state.config.seed}"}
     else
       state.assembly
     end
