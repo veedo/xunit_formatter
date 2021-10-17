@@ -77,6 +77,7 @@ defmodule XUnitFormatter.Struct do
           assembly |> Map.from_struct() |> Kernel.update_in(path, fun)
         ))
       end
+
       def attributes(data) do
         data.collections
         |> Enum.reduce(%{data | total: 0, passed: 0, failed: 0, skipped: 0}, fn collection, acc_assembly ->
@@ -106,6 +107,38 @@ defmodule XUnitFormatter.Struct do
         end
         errors ++ collections
       end
+    end
+  end
+
+  defmodule Collection do
+    @enforce_keys [:name]
+    defstruct name: nil,
+              time: nil,
+              total: 0,
+              passed: 0,
+              failed: 0,
+              skipped: 0,
+              tests: []
+
+    defimpl XUnitXML do
+      defdelegate xunit_xml(data), to: XUnitXML.Any
+      def attributes(data) do
+        %{data | total: Enum.count(data.tests),
+        passed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.passed?/1),
+        failed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.failed?/1),
+        skipped: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.skipped?/1)}
+        |> XUnitXML.Any.attributes()
+      end
+
+      def element_name(_), do: :collection
+      def content(collection) do
+        if is_list(collection.tests) do
+          Enum.map(collection.tests, &XUnitXML.xunit_xml/1)
+        else
+          []
+        end
+      end
+      def child_elements(_), do: [:tests]
     end
   end
 
@@ -174,11 +207,17 @@ defmodule XUnitFormatter.Struct do
     def struct!({:invalid, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
     def struct!({:excluded, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
     def struct!({:skipped, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
-    def attributes(%__MODULE__{result: result}), do: %{result: result}
-    def content(%__MODULE__{reason: reason, failure: nil}) when not is_nil(reason), do: [reason: {:cdata, reason}]
-    def content(%__MODULE__{reason: nil, failure: failure}) when not is_nil(failure), do: [XUnitXML.xunit_xml(failure)]
-    def content(_), do: []
 
+    defimpl XUnitXML do
+      def attributes(%Result{result: result}), do: %{result: result}
+      def content(%Result{reason: reason, failure: nil}) when not is_nil(reason), do: [reason: {:cdata, reason}]
+      def content(%Result{reason: nil, failure: failure}) when not is_nil(failure), do: [XUnitXML.xunit_xml(failure)]
+      def content(_), do: []
+
+      defdelegate xunit_xml(data), to: XUnitXML.Any
+      defdelegate element_name(data), to: XUnitXML.Any
+      defdelegate child_elements(data), to: XUnitXML.Any
+    end
   end
 
   defmodule Trait do
@@ -239,7 +278,7 @@ defmodule XUnitFormatter.Struct do
       defdelegate xunit_xml(data), to: XUnitXML.Any
       def attributes(data) do
         attributes = XUnitXML.Any.attributes(data)
-        result_attributes = Result.attributes(data.result)
+        result_attributes = XUnitXML.attributes(data.result)
         Map.merge(attributes, result_attributes)
       end
 
@@ -250,43 +289,11 @@ defmodule XUnitFormatter.Struct do
         else
           []
         end
-        result_content = Result.content(data.result)
+        result_content = XUnitXML.content(data.result)
 
         result_content ++ trait_content
       end
       def child_elements(_), do: [:traits, :failure, :reason]
-    end
-  end
-
-  defmodule Collection do
-    @enforce_keys [:name]
-    defstruct name: nil,
-              time: nil,
-              total: 0,
-              passed: 0,
-              failed: 0,
-              skipped: 0,
-              tests: []
-
-    defimpl XUnitXML do
-      defdelegate xunit_xml(data), to: XUnitXML.Any
-      def attributes(data) do
-        %{data | total: Enum.count(data.tests),
-        passed: data.tests |> Enum.count(&Test.passed?/1),
-        failed: data.tests |> Enum.count(&Test.failed?/1),
-        skipped: data.tests |> Enum.count(&Test.skipped?/1)}
-        |> XUnitXML.Any.attributes()
-      end
-
-      def element_name(_), do: :collection
-      def content(collection) do
-        if is_list(collection.tests) do
-          Enum.map(collection.tests, &XUnitXML.xunit_xml/1)
-        else
-          []
-        end
-      end
-      def child_elements(_), do: [:tests]
     end
   end
 end
