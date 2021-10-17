@@ -11,7 +11,9 @@ defmodule XUnitFormatter.Struct do
 
       def element_name(_data), do: :assemblies
       def content(data), do: Enum.map(data.assemblies, &XUnitXML.xunit_xml/1)
-      def xunit_xml(data), do: document(element_name(data), content(data)) |> XmlBuilder.generate()
+
+      def xunit_xml(data),
+        do: document(element_name(data), content(data)) |> XmlBuilder.generate()
     end
   end
 
@@ -30,7 +32,7 @@ defmodule XUnitFormatter.Struct do
         mm = (data.month || now.month) |> Integer.to_string() |> String.pad_leading(2, "0")
         dd = (data.day || now.day) |> Integer.to_string() |> String.pad_leading(2, "0")
         "#{yyyy}-#{mm}-#{dd}"
-        end
+      end
     end
   end
 
@@ -46,7 +48,7 @@ defmodule XUnitFormatter.Struct do
       def xunit_xml(data) do
         now = DateTime.utc_now()
         hh = (data.hour || now.hour) |> Integer.to_string() |> String.pad_leading(2, "0")
-        mm = (data.minute|| now.minute) |> Integer.to_string() |> String.pad_leading(2, "0")
+        mm = (data.minute || now.minute) |> Integer.to_string() |> String.pad_leading(2, "0")
         ss = (data.second || now.second) |> Integer.to_string() |> String.pad_leading(2, "0")
         "#{hh}:#{mm}:#{ss}"
       end
@@ -55,6 +57,7 @@ defmodule XUnitFormatter.Struct do
 
   defmodule Assembly do
     import XmlBuilder
+
     defstruct name: nil,
               config_file: nil,
               test_framework: :ex_unit,
@@ -69,42 +72,48 @@ defmodule XUnitFormatter.Struct do
               errors: [],
               collections: []
 
+    def update_in(assembly = %Assembly{}, path, fun) do
+      Kernel.struct!(Assembly, assembly |> Map.from_struct() |> Kernel.update_in(path, fun))
+    end
+
     defimpl XUnitXML do
       defdelegate xunit_xml(data), to: XUnitXML.Any
 
-      defp update_assembly_in(assembly = %Assembly{}, path, fun) do
-        Kernel.struct!(Assembly, (
-          assembly |> Map.from_struct() |> Kernel.update_in(path, fun)
-        ))
+      defp add_test_numbers(collection, assembly) do
+        %{total: total, passed: passed, failed: failed, skipped: skipped} =
+          XUnitXML.attributes(collection)
+
+        assembly
+        |> Assembly.update_in([:total], &(&1 + total))
+        |> Assembly.update_in([:passed], &(&1 + passed))
+        |> Assembly.update_in([:failed], &(&1 + failed))
+        |> Assembly.update_in([:skipped], &(&1 + skipped))
       end
 
       def attributes(data) do
         data.collections
-        |> Enum.reduce(%{data | total: 0, passed: 0, failed: 0, skipped: 0}, fn collection, acc_assembly ->
-          %{total: total, passed: passed, failed: failed, skipped: skipped} = XUnitXML.attributes(collection)
-
-          acc_assembly
-          |> update_assembly_in([:total], &(&1 + total))
-          |> update_assembly_in([:passed], &(&1 + passed))
-          |> update_assembly_in([:failed], &(&1 + failed))
-          |> update_assembly_in([:skipped], &(&1 + skipped))
-        end)
+        |> Enum.reduce(%{data | total: 0, passed: 0, failed: 0, skipped: 0}, &add_test_numbers/2)
         |> XUnitXML.Any.attributes()
       end
 
       def element_name(_), do: :assembly
       def child_elements(_), do: [:errors, :collections]
+
       def content(assembly) do
-        errors = if is_list(assembly.errors) and length(assembly.errors) > 1 do
-          [element(:errors, Enum.map(assembly.errors, &XUnitXML.xunit_xml/1))]
-        else
-          []
-        end
-        collections = if is_list(assembly.collections) do
-          Enum.map(assembly.collections, &XUnitXML.xunit_xml/1)
-        else
-          []
-        end
+        errors =
+          if is_list(assembly.errors) and length(assembly.errors) > 1 do
+            [element(:errors, Enum.map(assembly.errors, &XUnitXML.xunit_xml/1))]
+          else
+            []
+          end
+
+        collections =
+          if is_list(assembly.collections) do
+            Enum.map(assembly.collections, &XUnitXML.xunit_xml/1)
+          else
+            []
+          end
+
         errors ++ collections
       end
     end
@@ -122,15 +131,20 @@ defmodule XUnitFormatter.Struct do
 
     defimpl XUnitXML do
       defdelegate xunit_xml(data), to: XUnitXML.Any
+
       def attributes(data) do
-        %{data | total: Enum.count(data.tests),
-        passed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.passed?/1),
-        failed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.failed?/1),
-        skipped: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.skipped?/1)}
+        %{
+          data
+          | total: Enum.count(data.tests),
+            passed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.passed?/1),
+            failed: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.failed?/1),
+            skipped: data.tests |> Enum.count(&XUnitFormatter.Struct.Test.skipped?/1)
+        }
         |> XUnitXML.Any.attributes()
       end
 
       def element_name(_), do: :collection
+
       def content(collection) do
         if is_list(collection.tests) do
           Enum.map(collection.tests, &XUnitXML.xunit_xml/1)
@@ -138,6 +152,7 @@ defmodule XUnitFormatter.Struct do
           []
         end
       end
+
       def child_elements(_), do: [:tests]
     end
   end
@@ -147,12 +162,22 @@ defmodule XUnitFormatter.Struct do
               message: nil,
               stack_trace: nil
 
-    defp to_map({exception_type, message, stack_trace}), do: %{exception_type: exception_type, message: message, stack_trace: stack_trace}
+    defp to_map({exception_type, message, stack_trace}),
+      do: %{exception_type: exception_type, message: message, stack_trace: stack_trace}
+
     defp convert_exception([msg | _]), do: convert_exception(msg)
-    defp convert_exception({type, %ExUnit.AssertionError{message: reason}, stack_trace}), do: {type, reason, Exception.format_stacktrace(stack_trace)}
-    defp convert_exception({:error, reason, stack_trace}), do: {:error, Exception.message(reason), Exception.format_stacktrace(stack_trace)}
-    defp convert_exception({type, reason, stack_trace}) when is_atom(type), do: {type, "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)}
-    defp convert_exception({type, reason, stack_trace}), do: {"#{inspect(type)}", "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)}
+
+    defp convert_exception({type, %ExUnit.AssertionError{message: reason}, stack_trace}),
+      do: {type, reason, Exception.format_stacktrace(stack_trace)}
+
+    defp convert_exception({:error, reason, stack_trace}),
+      do: {:error, Exception.message(reason), Exception.format_stacktrace(stack_trace)}
+
+    defp convert_exception({type, reason, stack_trace}) when is_atom(type),
+      do: {type, "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)}
+
+    defp convert_exception({type, reason, stack_trace}),
+      do: {"#{inspect(type)}", "#{inspect(reason)}", Exception.format_stacktrace(stack_trace)}
 
     @spec struct!(ExUnit.failed()) :: %__MODULE__{}
     def struct!(failure) do
@@ -164,12 +189,14 @@ defmodule XUnitFormatter.Struct do
       defdelegate xunit_xml(data), to: XUnitXML.Any
 
       def element_name(_), do: :failure
+
       def content(data) do
         [
           message: {:cdata, data.message},
           "stack-trace": {:cdata, data.stack_trace}
         ]
       end
+
       def child_elements(_), do: [:message, :stack_trace]
     end
   end
@@ -203,15 +230,23 @@ defmodule XUnitFormatter.Struct do
 
     def struct!(fields = %{}), do: Kernel.struct!(__MODULE__, fields)
     def struct!(nil), do: %__MODULE__{result: "Pass"}
-    def struct!({:failed, reasons}), do: %__MODULE__{result: "Fail", failure: Failure.struct!(reasons)}
+
+    def struct!({:failed, reasons}),
+      do: %__MODULE__{result: "Fail", failure: Failure.struct!(reasons)}
+
     def struct!({:invalid, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
     def struct!({:excluded, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
     def struct!({:skipped, reasons}), do: %__MODULE__{result: "Skip", reason: reasons}
 
     defimpl XUnitXML do
       def attributes(%Result{result: result}), do: %{result: result}
-      def content(%Result{reason: reason, failure: nil}) when not is_nil(reason), do: [reason: {:cdata, reason}]
-      def content(%Result{reason: nil, failure: failure}) when not is_nil(failure), do: [XUnitXML.xunit_xml(failure)]
+
+      def content(%Result{reason: reason, failure: nil}) when not is_nil(reason),
+        do: [reason: {:cdata, reason}]
+
+      def content(%Result{reason: nil, failure: failure}) when not is_nil(failure),
+        do: [XUnitXML.xunit_xml(failure)]
+
       def content(_), do: []
 
       defdelegate xunit_xml(data), to: XUnitXML.Any
@@ -222,6 +257,7 @@ defmodule XUnitFormatter.Struct do
 
   defmodule Trait do
     defstruct [:name, :value]
+
     defimpl XUnitXML do
       defdelegate attributes(data), to: XUnitXML.Any
       defdelegate content(data), to: XUnitXML.Any
@@ -245,7 +281,9 @@ defmodule XUnitFormatter.Struct do
     def failed?(%__MODULE__{result: result}), do: Result.failed?(result)
     def skipped?(%__MODULE__{result: result}), do: Result.skipped?(result)
 
-    defp strip_test_header(title) when not is_binary(title), do: strip_test_header(to_string(title))
+    defp strip_test_header(title) when not is_binary(title),
+      do: strip_test_header(to_string(title))
+
     defp strip_test_header(<<"test ", rest::binary>>), do: rest
     defp strip_test_header(rest), do: rest
 
@@ -253,7 +291,7 @@ defmodule XUnitFormatter.Struct do
       try do
         "#{value}"
       rescue
-        Protocol.UndefinedError -> "#{inspect value}"
+        Protocol.UndefinedError -> "#{inspect(value)}"
       end
     end
 
@@ -262,7 +300,7 @@ defmodule XUnitFormatter.Struct do
         test.tags
         |> Map.drop([:test_type, :case, :module, :test])
         |> Enum.reject(&XUnitXML.Any.attribute_empty?/1)
-        |> Enum.map(fn {k,v} -> %Trait{name: k, value: string_or_inspect(v)} end)
+        |> Enum.map(fn {k, v} -> %Trait{name: k, value: string_or_inspect(v)} end)
 
       Kernel.struct!(__MODULE__, %{
         name: strip_test_header(test.name),
@@ -276,6 +314,7 @@ defmodule XUnitFormatter.Struct do
 
     defimpl XUnitXML do
       defdelegate xunit_xml(data), to: XUnitXML.Any
+
       def attributes(data) do
         attributes = XUnitXML.Any.attributes(data)
         result_attributes = XUnitXML.attributes(data.result)
@@ -283,16 +322,20 @@ defmodule XUnitFormatter.Struct do
       end
 
       def element_name(_), do: :test
+
       def content(data) do
-        trait_content = if is_list(data.traits) and length(data.traits) > 1 do
-          [traits: (data.traits |> Enum.map(&XUnitXML.xunit_xml/1))]
-        else
-          []
-        end
+        trait_content =
+          if is_list(data.traits) and length(data.traits) > 1 do
+            [traits: data.traits |> Enum.map(&XUnitXML.xunit_xml/1)]
+          else
+            []
+          end
+
         result_content = XUnitXML.content(data.result)
 
         result_content ++ trait_content
       end
+
       def child_elements(_), do: [:traits, :failure, :reason]
     end
   end
