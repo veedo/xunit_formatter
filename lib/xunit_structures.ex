@@ -292,6 +292,7 @@ defmodule XUnitFormatter.Struct do
         "#{value}"
       rescue
         Protocol.UndefinedError -> "#{inspect(value)}"
+        ArgumentError -> "#{inspect(value)}"
       end
     end
 
