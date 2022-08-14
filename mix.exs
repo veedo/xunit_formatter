@@ -30,6 +30,7 @@ defmodule XunitFormatter.MixProject do
 
   defp package do
     [
+      name: "exunit_formatter_xunit",
       description: "XUnit Formatter for exunit test results. The format is tailored to work with azure devops, but any XUnit parser will work.",
       licenses: ["MIT"],
       maintainers: ["Zander Erasmus"],
