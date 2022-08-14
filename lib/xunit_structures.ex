@@ -228,6 +228,7 @@ defmodule XUnitFormatter.Struct do
     def failed?(%__MODULE__{result: result}), do: result == "Fail"
     def skipped?(%__MODULE__{result: result}), do: result == "Skip"
 
+    def struct!(), do: __MODULE__.struct!(nil)
     def struct!(fields = %{}), do: Kernel.struct!(__MODULE__, fields)
     def struct!(nil), do: %__MODULE__{result: "Pass"}
 
