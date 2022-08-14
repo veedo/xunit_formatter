@@ -16,13 +16,15 @@ end
 ```
 
 2. Add `XUnitFormatter` to the formatters in `test/test_helper.exs`:  
+
 ```elixir
 ExUnit.configure(formatters: [XUnitFormatter, ExUnit.CLIFormatter])
 ExUnit.start
 ```
 `ExUnit.CLIFormatter` also prints the test results to the console. Remove to suppress the console output.
 
-3. Run your tests
+3. Run your tests  
+
 ```
 $ mix test
 ........
