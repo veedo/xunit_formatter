@@ -5,13 +5,13 @@ defmodule XunitFormatter.MixProject do
     [
       app: :xunit_formatter,
       version: "0.1.0",
-      build_path: "../../_build",
-      config_path: "../../config/config.exs",
-      deps_path: "../../deps",
-      lockfile: "../../mix.lock",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      docs: docs(),
+      package: package(),
+      name: "ExUnit XUnit Formatter",
+      source_url: "https://github.com/veedo/xunit_formatter"
     ]
   end
 
@@ -23,7 +23,21 @@ defmodule XunitFormatter.MixProject do
 
   defp deps do
     [
-      {:xml_builder, "~> 2.2"}
+      {:xml_builder, "~> 2.2"},
+      {:ex_doc, "~> 0.28", only: :dev, runtime: false},
     ]
+  end
+
+  defp package do
+    [
+      description: "XUnit Formatter for exunit test results. The format is tailored to work with azure devops, but any XUnit parser will work.",
+      licenses: ["MIT"],
+      maintainers: ["Zander Erasmus"],
+      links: %{GitHub: "https://github.com/veedo/xunit_formatter"}
+    ]
+  end
+
+  defp docs do
+    [main: "readme", extras: ["README.md"]]
   end
 end
