@@ -34,6 +34,11 @@ defmodule XUnitFormatter do
     end
   end
 
+  def expand_exception_paths(exception, _cwd, _root_dir) do
+    # Unrecognized exceptions should just be passed down verbatim
+    exception
+  end
+
   @impl true
   def init(config) do
     xunit_report_dir = Application.get_env(:xunit_formatter, :report_dir, Mix.Project.app_path())
