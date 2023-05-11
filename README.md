@@ -10,7 +10,7 @@ The XUnit output format is tailored to work with azure devops, but any XUnit par
 ```elixir
 def deps do
   [
-    {:exunit_formatter_xunit, "~> 0.1.1"}
+    {:exunit_formatter_xunit, "~> 0.2.0"}
   ]
 end
 ```
