@@ -58,6 +58,14 @@ defmodule XUnitFormatter do
         :xunit_prepend_app_name,
         Application.get_env(:xunit_formatter, :prepend_app_name, false)
       )
+      |> Keyword.put(
+        :xunit_output_skipped_tests,
+        Application.get_env(:xunit_formatter, :output_skipped_tests, true)
+      )
+      |> Keyword.put(
+        :xunit_filename_prefix,
+        Application.get_env(:xunit_formatter, :filename_prefix, "")
+      )
       |> Enum.into(%{})
 
     {:ok, %__MODULE__{config: config, date: DateTime.utc_now()}}
@@ -66,13 +74,17 @@ defmodule XUnitFormatter do
   @impl true
   def handle_cast({:suite_started, _opts}, state), do: {:noreply, %{state | assembly: nil}}
 
-  @impl true
   def handle_cast({:suite_finished, %{async: _async, load: load, run: run}}, state) do
     total = (run + (load || 0)) / 1_000_000
     state = put_in(state.assembly.time, total)
 
     prefix =
       if state.config.xunit_prepend_app_name, do: "#{Mix.Project.config()[:app]}-", else: ""
+
+    prefix =
+      if state.config.xunit_filename_prefix != "",
+        do: state.config.xunit_filename_prefix <> prefix,
+        else: prefix
 
     filename = state.config.xunit_report_dir |> Path.join(prefix <> "xunit-report.xml")
 
@@ -85,15 +97,18 @@ defmodule XUnitFormatter do
     {:noreply, state}
   end
 
-  @impl true
   def handle_cast({:test_finished, test = %ExUnit.Test{state: {skipped, _}}}, state)
-      when skipped in [:skipped, :excluded, :invalid] do
+      when skipped in [:skipped, :excluded, :invalid] and state.config.xunit_output_skipped_tests do
     skipped_tests_in_module = [test | Map.get(state.skipped, test.module, [])]
     skipped_tests = Map.put(state.skipped, test.module, skipped_tests_in_module)
     {:noreply, %{state | skipped: skipped_tests}}
   end
 
-  @impl true
+  def handle_cast({:test_finished, test = %ExUnit.Test{state: {skipped, _}}}, state)
+      when skipped in [:skipped, :excluded, :invalid] do
+    {:noreply, state}
+  end
+
   def handle_cast({:module_finished, test_module = %ExUnit.TestModule{}}, state) do
     tests =
       (test_module.tests ++ Map.get(state.skipped, test_module.name, []))
